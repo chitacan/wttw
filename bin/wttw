@@ -83,9 +83,20 @@ tmux_create_window() {
   tmux select-window -t $1
 }
 
-git worktree add $WORKTREE_PATH -b $BRANCH $REMOTE_BRANCH
-if $LINK_NODE_MODULES ; then ln -s $PWD/node_modules ../$BRANCH/node_modules ; fi
-cd $WORKTREE_PATH
+workspace() {
+  if [ ! -d "$WORKTREE_PATH" ]; then
+    git worktree add $WORKTREE_PATH -b $BRANCH $REMOTE_BRANCH
+  fi
+  cd $WORKTREE_PATH
+}
 
+node_modules() {
+  if $LINK_NODE_MODULES ; then
+    ln -s $PWD/node_modules ../$BRANCH/node_modules
+  fi
+}
+
+workspace
+node_modules
 tmux_create_window $BRANCH $SESSION $PWD
 tmux_split_pane $PANES
