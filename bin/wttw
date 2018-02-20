@@ -85,7 +85,7 @@ tmux_create_window() {
 
 workspace() {
   if [ ! -d "$WORKTREE_PATH" ]; then
-    git worktree add $WORKTREE_PATH -b $BRANCH $REMOTE_BRANCH
+    git worktree add $WORKTREE_PATH -B $BRANCH $REMOTE_BRANCH
   fi
   cd $WORKTREE_PATH
 }
