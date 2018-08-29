@@ -10,4 +10,4 @@ $ npm install -g wttw
 
 # see how it works
 
-![demo](https://raw.githubusercontent.com/chitacan/wttw/master/img/demo.gif)
+![demo](https://user-images.githubusercontent.com/286950/44774937-5e07dc00-abaf-11e8-8adf-f91685358699.gif)
