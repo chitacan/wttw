@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "description": "create new git worktree in tmux window.",
   "bin": {
-    "wttw": "./bin/wttw"
+    "wttw": "bin/wttw"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,6 +11,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chitacan/wttw.git"
+  },
+  "engines": {
+    "node": ">=8"
   },
   "keywords": [
     "tmux",
@@ -22,5 +25,11 @@
   "bugs": {
     "url": "https://github.com/chitacan/wttw/issues"
   },
-  "homepage": "https://github.com/chitacan/wttw#readme"
+  "homepage": "https://github.com/chitacan/wttw#readme",
+  "dependencies": {
+    "command-exists": "^1.2.7",
+    "commander": "^2.17.1",
+    "execa": "^1.0.0",
+    "signale": "^1.2.1"
+  }
 }
