@@ -1,6 +1,6 @@
 {
   "name": "wttw",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "create new git worktree in tmux window.",
   "bin": {
     "wttw": "bin/wttw"
