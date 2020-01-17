@@ -1,6 +1,6 @@
 {
   "name": "@chitacan/wttw",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "create new git worktree in tmux window.",
   "bin": {
     "wttw": "bin/wttw"
