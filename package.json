@@ -6,7 +6,7 @@
     "wttw": "bin/wttw"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -32,5 +32,11 @@
     "execa": "^5.0.0",
     "fs-extra": "^7.0.0",
     "signale": "^1.2.1"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  },
+  "jest": {
+    "clearMocks": true
   }
 }
