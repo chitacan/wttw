@@ -13,7 +13,7 @@
     "url": "git+https://github.com/chitacan/wttw.git"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=12"
   },
   "keywords": [
     "tmux",
