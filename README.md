@@ -1,8 +1,6 @@
 # wttw
 
-<kbd><img width="400" src="https://user-images.githubusercontent.com/286950/44774937-5e07dc00-abaf-11e8-8adf-f91685358699.gif"/></kbd>
-
-create new git worktree in tmux window.
+create new git worktrees.
 
 ## installation
 
@@ -11,6 +9,8 @@ $ npm install -g wttw
 ```
 
 ## how it works?
+
+<kbd><img width="400" src="https://user-images.githubusercontent.com/286950/44774937-5e07dc00-abaf-11e8-8adf-f91685358699.gif"/></kbd>
 
 ```sh
 $ tree
