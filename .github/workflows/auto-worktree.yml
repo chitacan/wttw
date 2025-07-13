@@ -1,0 +1,172 @@
+name: create worktrees
+on:
+  workflow_dispatch:
+    inputs:
+      {}
+
+jobs:
+  check_branches:
+    runs-on: [self-hosted, cmms]
+    outputs:
+      targetWorktrees: ${{ steps.target_worktrees.outputs.targetWorktrees }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm i
+      - uses: actions/github-script@v7
+        id: read_config
+        with:
+          script: |
+            const {join} = require('path');
+            const config = require('./.github/auto-worktree-config.json');
+
+            const {name, path, mainBranch, vscodeProfile} = config.find(c => c.name === 'cortex');
+
+            core.setOutput('worktreesPath', path);
+            core.setOutput('mainBranch', mainBranch);
+            core.setOutput('vscodeProfile', vscodeProfile || 'default');
+
+      - name: fetch branches
+        working-directory: ${{ steps.read_config.outputs.worktreesPath }}/${{ steps.read_config.outputs.mainBranch }}
+        run: git fetch --all
+
+      # https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
+      - name: fetch prs
+        id: fetch_prs
+        working-directory: ${{ steps.read_config.outputs.worktreesPath }}/${{ steps.read_config.outputs.mainBranch }}
+        run: |
+          gh pr list --state open --json number,title,body,headRefName,baseRefName,author,createdAt,url > ../context/prs.json
+
+      - uses: actions/github-script@v7
+        id: target_worktrees
+        env:
+          WORKTREES_PATH: ${{ steps.read_config.outputs.worktreesPath }}
+          MAIN_BRANCH: ${{ steps.read_config.outputs.mainBranch }}
+          VSCODE_PROFILE: ${{ steps.read_config.outputs.vscodeProfile }}
+          ME: ${{ github.actor }}
+        with:
+          script: |
+            const {join} = require('path');
+            const {existsSync} = require('fs');
+            
+            const worktreesPath = process.env.WORKTREES_PATH;
+            const mainBranch = process.env.MAIN_BRANCH;
+            const vscodeProfile = process.env.VSCODE_PROFILE;
+
+            const prs = require(join(worktreesPath, 'context/prs.json'));
+            const wtd = join(worktreesPath, mainBranch);
+
+            const targetWorktrees = prs
+              .filter(({author, number}) => {
+                const worktreePath = join(worktreesPath, `pr-${number}`);
+                return !existsSync(worktreePath) && author.login !== process.env.ME
+              })
+              .map(pr => {
+                const worktreeName = `pr-${pr.number}`;
+                const workspaceFile = join(worktreesPath, 'context', 'workspaces', `${worktreeName}.code-workspace`);
+
+                const url = new URL("https://vscode.dev");
+                url.pathname = join('tunnel', 'cmms', workspaceFile);
+                url.searchParams.set('payload', JSON.stringify([['profile', vscodeProfile]]));
+
+                const workspaceUrl = url.toString();
+                return {
+                  worktreePath: join(worktreesPath, worktreeName),
+                  worktreeName,
+                  workspaceFile,
+                  workspaceUrl,
+                  wtd,
+                  ...pr
+                }
+              });
+
+            core.setOutput('targetWorktrees', JSON.stringify(targetWorktrees));
+
+  create_worktrees:
+    needs: check_branches
+    runs-on: [self-hosted, cmms]
+    if: ${{ needs.check_branches.outputs.targetWorktrees != '[]' }}
+    strategy:
+      max-parallel: 2
+      matrix:
+        worktree: ${{ fromJson(needs.check_branches.outputs.targetWorktrees) }}
+
+    steps:
+      - name: create worktree
+        working-directory: ${{ matrix.worktree.wtd }}
+        run: |
+          echo "creating worktree for ${{ matrix.worktree.headRefName }}"
+          echo "worktree path: ${{ matrix.worktree.worktreePath }}"
+          echo "author: ${{ matrix.worktree.author.login }}"
+          echo "workspace url: ${{ matrix.worktree.workspaceUrl }}"
+
+          git worktree add -B ${{ matrix.worktree.worktreeName }} ${{ matrix.worktree.worktreePath }} origin/${{ matrix.worktree.headRefName }}
+
+      # default-files
+
+      # after creating worktree hook (mix deps.get, mix compile ....)
+
+      - name: create code-workspace file
+        uses: actions/github-script@v7
+        env:
+          WORKTREE: ${{ toJSON(matrix.worktree) }}
+          WTD: ${{ matrix.worktree.wtd }}
+          WORKTREE_PATH: ${{ matrix.worktree.worktreePath }}
+          WORKSPACE_FILE: ${{ matrix.worktree.workspaceFile }}
+        with:
+          script: |
+            const {parse, stringify, assign} = require('comment-json');
+            const {basename, resolve, join} = require('path');
+            const {readFileSync, writeFileSync, existsSync} = require('fs');
+
+            const worktree = process.env.WORKTREE;
+            const wtd = process.env.WTD;
+            const worktreePath = process.env.WORKTREE_PATH;
+            const workspaceFile = process.env.WORKSPACE_FILE;
+
+            const mainBranch = basename(wtd);
+            const branch = basename(worktreePath);
+            const repoName = basename(resolve(wtd, '..'));
+
+            const workspaceFileFrom = resolve(wtd, '..', 'context', 'workspaces', `${mainBranch}.code-workspace`);
+            const wttwFile = resolve(worktreePath, '.wttw.json');
+
+            if (existsSync(workspaceFileFrom)) {
+              const workspace = parse(readFileSync(workspaceFileFrom, 'utf8'));
+              const updatedFolders = workspace.folders.map(folder => {
+                if (folder.name === repoName) {
+                  return {
+                    ...folder,
+                    path: join('..', '..', branch)
+                  };
+                }
+                return folder;
+              });
+              const updatedWorkspace = assign(workspace, {
+                folders: updatedFolders
+              });
+              writeFileSync(workspaceFile, stringify(updatedWorkspace, null, 2));
+            } else {
+              core.info(`Workspace file ${workspaceFileFrom} does not exist, skipping creation.`);
+            }
+
+            writeFileSync(wttwFile, stringify(worktree, null, 2));
+
+      # generate key changes with claude
+
+      - name: send notification
+        uses: actions/github-script@v7
+        env:
+          WORKTREE: ${{ toJSON(matrix.worktree) }}
+          ZAPIER_WEBHOOK_URL: ${{ secrets.ZAPIER_WEBHOOK_URL }}
+        with:
+          script: |
+            const worktree = process.env.WORKTREE;
+            const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL;
+
+            await fetch(zapierWebhookUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(worktree)
+            });
