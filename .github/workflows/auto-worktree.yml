@@ -19,11 +19,12 @@ jobs:
             const {join} = require('path');
             const config = require('./.github/auto-worktree-config.json');
 
-            const {name, path, mainBranch, vscodeProfile} = config.find(c => c.name === 'cortex');
+            const {name, path, mainBranch, vscodeProfile, afterCreateHook} = config.find(c => c.name === 'cortex');
 
             core.setOutput('worktreesPath', path);
             core.setOutput('mainBranch', mainBranch);
             core.setOutput('vscodeProfile', vscodeProfile || 'default');
+            core.setOutput('afterCreateHook', afterCreateHook || '');
 
       - name: fetch branches
         working-directory: ${{ steps.read_config.outputs.worktreesPath }}/${{ steps.read_config.outputs.mainBranch }}
@@ -42,6 +43,7 @@ jobs:
           WORKTREES_PATH: ${{ steps.read_config.outputs.worktreesPath }}
           MAIN_BRANCH: ${{ steps.read_config.outputs.mainBranch }}
           VSCODE_PROFILE: ${{ steps.read_config.outputs.vscodeProfile }}
+          AFTER_CREATE_HOOK: ${{ steps.read_config.outputs.afterCreateHook }}
           ME: ${{ github.actor }}
         with:
           script: |
@@ -51,6 +53,7 @@ jobs:
             const worktreesPath = process.env.WORKTREES_PATH;
             const mainBranch = process.env.MAIN_BRANCH;
             const vscodeProfile = process.env.VSCODE_PROFILE;
+            const afterCreateHook = process.env.AFTER_CREATE_HOOK;
 
             const prs = require(join(worktreesPath, 'context/prs.json'));
             const wtd = join(worktreesPath, mainBranch);
@@ -75,6 +78,7 @@ jobs:
                   workspaceFile,
                   workspaceUrl,
                   wtd,
+                  afterCreateHook,
                   ...pr
                 }
               });
@@ -96,14 +100,15 @@ jobs:
         run: |
           echo "creating worktree for ${{ matrix.worktree.headRefName }}"
           echo "worktree path: ${{ matrix.worktree.worktreePath }}"
-          echo "author: ${{ matrix.worktree.author.login }}"
+          echo "worktree name: ${{ matrix.worktree.worktreeName }}"
           echo "workspace url: ${{ matrix.worktree.workspaceUrl }}"
 
-          git worktree add -B ${{ matrix.worktree.worktreeName }} ${{ matrix.worktree.worktreePath }} origin/${{ matrix.worktree.headRefName }}
+          wttw new ${{ matrix.worktree.worktreeName }} --base-ref origin/${{ matrix.worktree.headRefName }} --no-tmux
 
-      # default-files
-
-      # after creating worktree hook (mix deps.get, mix compile ....)
+      - name: run after create worktree hook
+        working-directory: ${{ matrix.worktree.worktreePath }}
+        if: ${{ matrix.worktree.afterCreateHook }}
+        run: ${{ matrix.worktree.afterCreateHook }}
 
       - name: create code-workspace file
         uses: actions/github-script@v7

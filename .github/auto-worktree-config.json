@@ -3,12 +3,14 @@
     "name": "cortex",
     "path": "/users/chitacan/git/cortex",
     "mainBranch": "dev",
-    "vscodeProfile": "spectral"
+    "vscodeProfile": "spectral",
+    "afterCreateHook": "mix deps.get && mix compile"
   },
   {
     "name": "bros",
     "path": "/users/chitacan/git/cortex",
     "mainBranch": "dev",
-    "vscodeProfile": "spectral"
+    "vscodeProfile": "spectral",
+    "afterCreateHook": "mix deps.get && mix compile"
   }
 ]
