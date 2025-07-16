@@ -1,14 +1,15 @@
-name: create worktrees
+name: Auto Worktrees
+description: Automatically create worktrees for open PRs.
 on:
   workflow_dispatch:
     inputs:
       {}
 
 jobs:
-  check_branches:
+  check_config:
     runs-on: [self-hosted, cmms]
     outputs:
-      targetWorktrees: ${{ steps.target_worktrees.outputs.targetWorktrees }}
+      config: ${{ steps.read_config.outputs.config }}
     steps:
       - uses: actions/checkout@v3
       - run: npm i
@@ -16,46 +17,51 @@ jobs:
         id: read_config
         with:
           script: |
-            const {join} = require('path');
-            const config = require('./.github/auto-worktree-config.json');
+            const config = require('./.github/auto-worktrees-config.json');
 
-            const {name, path, mainBranch, vscodeProfile, afterCreateHook} = config.find(c => c.name === 'cortex');
+            core.setOutput('config', JSON.stringify(config));
 
-            core.setOutput('worktreesPath', path);
-            core.setOutput('mainBranch', mainBranch);
-            core.setOutput('vscodeProfile', vscodeProfile || 'default');
-            core.setOutput('afterCreateHook', afterCreateHook || '');
+  check_branches:
+    needs: check_config
+    runs-on: [self-hosted, cmms]
+    if: ${{ needs.check_config.outputs.config != '[]' }}
+    strategy:
+      max-parallel: 2
+      matrix:
+        config: ${{ fromJson(needs.check_config.outputs.config) }}
 
+    steps:
       - name: fetch branches
-        working-directory: ${{ steps.read_config.outputs.worktreesPath }}/${{ steps.read_config.outputs.mainBranch }}
+        working-directory: ${{ matrix.config.path }}/${{ matrix.config.mainBranch }}
         run: git fetch --all
 
-      # https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
       - name: fetch prs
         id: fetch_prs
-        working-directory: ${{ steps.read_config.outputs.worktreesPath }}/${{ steps.read_config.outputs.mainBranch }}
+        working-directory: ${{ matrix.config.path }}/${{ matrix.config.mainBranch }}
         run: |
-          gh pr list --state open --json number,title,body,headRefName,baseRefName,author,createdAt,url > ../context/prs.json
+          gh pr list --state open --json number,title,body,headRefName,baseRefName,author,createdAt,url > ../context/wttw-prs.json
 
       - uses: actions/github-script@v7
         id: target_worktrees
         env:
-          WORKTREES_PATH: ${{ steps.read_config.outputs.worktreesPath }}
-          MAIN_BRANCH: ${{ steps.read_config.outputs.mainBranch }}
-          VSCODE_PROFILE: ${{ steps.read_config.outputs.vscodeProfile }}
-          AFTER_CREATE_HOOK: ${{ steps.read_config.outputs.afterCreateHook }}
+          NAME: ${{ matrix.config.name }}
+          WORKTREES_PATH: ${{ matrix.config.path }}
+          MAIN_BRANCH: ${{ matrix.config.mainBranch }}
+          VSCODE_PROFILE: ${{ matrix.config.vscodeProfile }}
+          AFTER_CREATE_HOOK: ${{ matrix.config.afterCreateHook }}
           ME: ${{ github.actor }}
         with:
           script: |
             const {join} = require('path');
-            const {existsSync} = require('fs');
+            const {existsSync, writeFileSync} = require('fs');
             
+            const name = process.env.NAME;
             const worktreesPath = process.env.WORKTREES_PATH;
             const mainBranch = process.env.MAIN_BRANCH;
-            const vscodeProfile = process.env.VSCODE_PROFILE;
-            const afterCreateHook = process.env.AFTER_CREATE_HOOK;
+            const vscodeProfile = process.env.VSCODE_PROFILE || 'default';
+            const afterCreateHook = process.env.AFTER_CREATE_HOOK || '';
 
-            const prs = require(join(worktreesPath, 'context/prs.json'));
+            const prs = require(join(worktreesPath, 'context/wttw-prs.json'));
             const wtd = join(worktreesPath, mainBranch);
 
             const targetWorktrees = prs
@@ -73,6 +79,7 @@ jobs:
 
                 const workspaceUrl = url.toString();
                 return {
+                  name,
                   worktreePath: join(worktreesPath, worktreeName),
                   worktreeName,
                   workspaceFile,
@@ -83,16 +90,43 @@ jobs:
                 }
               });
 
+            writeFileSync(join(worktreesPath, 'context', 'wttw-worktrees.json'), JSON.stringify(targetWorktrees, null, 2));
+
+  aggregate_worktrees:
+    needs: check_branches
+    runs-on: [self-hosted, cmms]
+    outputs:
+      targetWorktrees: ${{ steps.aggregate_worktrees.outputs.targetWorktrees }}
+    steps:
+      - name: aggregate worktrees
+        id: aggregate_worktrees
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {join} = require('path');
+            const {readFileSync, existsSync} = require('fs');
+            const config = require('./.github/auto-worktrees-config.json');
+
+            const targetWorktrees = config.map(({path}) => {
+              const worktreesPath = join(path, 'context', 'wttw-worktrees.json');
+              if (existsSync(worktreesPath)) {
+                const worktrees = JSON.parse(readFileSync(worktreesPath, 'utf8'));
+                return worktrees;
+              }
+              return [];
+            })
+            .flat();
+
             core.setOutput('targetWorktrees', JSON.stringify(targetWorktrees));
 
   create_worktrees:
-    needs: check_branches
+    needs: aggregate_worktrees
     runs-on: [self-hosted, cmms]
-    if: ${{ needs.check_branches.outputs.targetWorktrees != '[]' }}
+    if: ${{ needs.aggregate_worktrees.outputs.targetWorktrees != '[]' }}
     strategy:
       max-parallel: 2
       matrix:
-        worktree: ${{ fromJson(needs.check_branches.outputs.targetWorktrees) }}
+        worktree: ${{ fromJson(needs.aggregate_worktrees.outputs.targetWorktrees) }}
 
     steps:
       - name: create worktree
@@ -154,7 +188,7 @@ jobs:
               core.info(`Workspace file ${workspaceFileFrom} does not exist, skipping creation.`);
             }
 
-            writeFileSync(wttwFile, stringify(worktree, null, 2));
+            writeFileSync(wttwFile, worktree);
 
       # generate key changes with claude
 
