@@ -192,19 +192,6 @@ jobs:
 
       # generate key changes with claude
 
-      - name: update dash snippets
-        env:
-          DASH_DB: /Users/chitacan/Library/Application Support/Dash/library.dash
-        run: |
-          sqlite3 "$DASH_DB" \
-            "INSERT OR REPLACE INTO snippets (title, body, syntax, usageCount)
-            VALUES (
-              '!${{ matrix.worktree.name}}/${{ matrix.worktree.worktreeName }}', 
-              '${{ matrix.worktree.workspaceUrl }}', 
-              'Standard', 
-              0
-            );"
-
       - name: send notification
         uses: actions/github-script@v7
         env:
