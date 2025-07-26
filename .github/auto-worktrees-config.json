@@ -4,7 +4,7 @@
     "path": "/users/chitacan/git/cortex",
     "mainBranch": "dev",
     "vscodeProfile": "spectral",
-    "afterCreateHook": "mix do deps.get + compile + ecto.reset"
+    "afterCreateHook": "mix do deps.get + compile + ecto.setup"
   },
   {
     "name": "bros",
