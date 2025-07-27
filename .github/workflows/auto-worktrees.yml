@@ -196,6 +196,24 @@ jobs:
 
       # generate key changes with claude
 
+      - name: update bolt
+        uses: actions/github-script@v7
+        env:
+          WORKTREE: ${{ toJSON(matrix.worktree) }}
+          BOLT_API: ${{ secrets.BOLT_API }}
+        with:
+          script: |
+            const worktree = process.env.WORKTREE;
+            const boltApi = process.env.BOLT_API;
+
+            await fetch(boltApi, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(worktree)
+            });
+
       - name: send notification
         uses: actions/github-script@v7
         env:
