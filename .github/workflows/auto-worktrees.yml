@@ -211,7 +211,7 @@ jobs:
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify(worktree)
+              body: JSON.stringify({worktree: JSON.parse(worktree)})
             });
 
       - name: send notification
@@ -229,5 +229,5 @@ jobs:
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify(worktree)
+              body: worktree
             });
