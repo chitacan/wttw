@@ -42,7 +42,31 @@ jobs:
         id: fetch_prs
         working-directory: ${{ matrix.config.path }}/${{ matrix.config.mainBranch }}
         run: |
-          gh pr list --state open --json number,title,body,headRefName,baseRefName,author,createdAt,url > ../context/wttw-prs.json
+          gh pr list --state all --json number,title,body,headRefName,baseRefName,author,createdAt,url,state,reviewDecision,isDraft > ../context/wttw-prs.json
+
+      - name: sync worktrees status
+        uses: actions/github-script@v7
+        env:
+          NAME: ${{ matrix.config.name }}
+          WORKTREES_PATH: ${{ matrix.config.path }}
+          BOLT_API: ${{ secrets.BOLT_API }}
+        with:
+          script: |
+            const {join} = require('path');
+
+            const name = process.env.NAME;
+            const worktreesPath = process.env.WORKTREES_PATH;
+            const boltApi = process.env.BOLT_API;
+
+            const prs = require(join(worktreesPath, 'context/wttw-prs.json'));
+            await fetch(`${boltApi}/sync`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({name, worktrees: prs})
+            });
+
 
       - uses: actions/github-script@v7
         id: target_worktrees
@@ -68,9 +92,11 @@ jobs:
             const wtd = join(worktreesPath, mainBranch);
 
             const targetWorktrees = prs
+              .filter(({state}) => state === 'OPEN')
+              .filter(({author}) => author.login !== process.env.ME)
               .filter(({author, number}) => {
                 const worktreePath = join(worktreesPath, `pr-${number}`);
-                return !existsSync(worktreePath) && author.login !== process.env.ME
+                return !existsSync(worktreePath);
               })
               .map(pr => {
                 const worktreeName = `pr-${pr.number}`;
