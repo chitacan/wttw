@@ -24,6 +24,91 @@ jobs:
 
             core.setOutput('config', JSON.stringify(config));
 
+  update_workspace_worktree:
+    needs: check_config
+    runs-on: [self-hosted, cmms]
+    if: ${{ needs.check_config.outputs.config != '[]' }}
+    strategy:
+      max-parallel: 2
+      matrix:
+        config: ${{ fromJson(needs.check_config.outputs.config) }}
+
+    steps:
+      - name: update workspace worktree
+        uses: actions/github-script@v7
+        env:
+          NAME: ${{ matrix.config.name }}
+          VSCODE_PROFILE: ${{ matrix.config.vscodeProfile }}
+          WORKTREES_PATH: ${{ matrix.config.path }}
+          MAIN_BRANCH: ${{ matrix.config.mainBranch }}
+          BOLT_API: ${{ secrets.BOLT_API }}
+        with:
+          script: |
+            const {join} = require('path');
+
+            const name = process.env.NAME;
+            const boltApi = process.env.BOLT_API;
+            const worktreesPath = process.env.WORKTREES_PATH;
+            const mainBranch = process.env.MAIN_BRANCH;
+            const vscodeProfile = process.env.VSCODE_PROFILE || 'default';
+
+            const worktreePath = join(worktreesPath, 'workspace');
+            const workspaceFile = join(worktreesPath, 'context', 'workspaces', 'workspace.code-workspace');
+
+            const branch = await exec.getExecOutput('git branch --show-current', {cwd: worktreePath})
+              .then((result) => result.stdout.trim());
+            console.log(`Current branch: ${branch}`);
+
+            const url = new URL("https://vscode.dev");
+            url.pathname = join('tunnel', 'cmms', workspaceFile);
+            url.searchParams.set('payload', JSON.stringify([['profile', vscodeProfile]]));
+
+            // TODO: inference issue URL from branch name
+            const issueUrl = '';
+
+            const worktree = await fetch(`${boltApi}/worktree/${name}/0`)
+              .then(res => res.json())
+              .then(({data}) => data)
+              .catch(() => false);
+
+            if (!worktree) {
+              await fetch(boltApi, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  worktree: {
+                    name,
+                    number: 0,
+                    title: branch,
+                    worktreePath,
+                    worktreeName: 'workspace',
+                    workspaceFile,
+                    workspaceUrl: url.toString(),
+                    headRefName: branch,
+                    baseRefName: mainBranch,
+                    url: issueUrl
+                  }
+                })
+              });
+            } else {
+              await fetch(`${boltApi}/worktree/${name}/0`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  worktree: {
+                    title: branch,
+                    headRefName: branch,
+                    url: issueUrl
+                  }
+                })
+              });
+            }
+
+
   check_branches:
     needs: check_config
     runs-on: [self-hosted, cmms]
