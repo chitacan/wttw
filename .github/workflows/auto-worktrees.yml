@@ -55,16 +55,12 @@ jobs:
             const worktreePath = join(worktreesPath, 'workspace');
             const workspaceFile = join(worktreesPath, 'context', 'workspaces', 'workspace.code-workspace');
 
-            const branch = await exec.getExecOutput('git branch --show-current', {cwd: worktreePath})
+            const branch = await exec.getExecOutput('git branch --show-current', [], {cwd: worktreePath})
               .then((result) => result.stdout.trim());
-            console.log(`Current branch: ${branch}`);
 
             const url = new URL("https://vscode.dev");
             url.pathname = join('tunnel', 'cmms', workspaceFile);
             url.searchParams.set('payload', JSON.stringify([['profile', vscodeProfile]]));
-
-            // TODO: inference issue URL from branch name
-            const issueUrl = '';
 
             const worktree = await fetch(`${boltApi}/worktree/${name}/0`)
               .then(res => res.json())
@@ -87,8 +83,7 @@ jobs:
                     workspaceFile,
                     workspaceUrl: url.toString(),
                     headRefName: branch,
-                    baseRefName: mainBranch,
-                    url: issueUrl
+                    baseRefName: mainBranch
                   }
                 })
               });
