@@ -58,14 +58,18 @@ jobs:
             const branch = await exec.getExecOutput('git branch --show-current', [], {cwd: worktreePath})
               .then((result) => result.stdout.trim());
 
+            console.log(`Current branch: ${branch}`);
+
             const url = new URL("https://vscode.dev");
             url.pathname = join('tunnel', 'cmms', workspaceFile);
             url.searchParams.set('payload', JSON.stringify([['profile', vscodeProfile]]));
 
-            const worktree = await fetch(`${boltApi}/worktree/${name}/0`)
+            const worktree = await fetch(`${boltApi}/${name}/0`)
               .then(res => res.json())
               .then(({data}) => data)
               .catch(() => false);
+
+            console.log(`Worktree: ${JSON.stringify(worktree)}`);
 
             if (!worktree) {
               await fetch(boltApi, {
@@ -88,7 +92,7 @@ jobs:
                 })
               });
             } else {
-              await fetch(`${boltApi}/worktree/${name}/0`, {
+              await fetch(`${boltApi}/${worktree.id}`, {
                 method: 'PATCH',
                 headers: {
                   'Content-Type': 'application/json'
@@ -96,8 +100,7 @@ jobs:
                 body: JSON.stringify({
                   worktree: {
                     title: branch,
-                    headRefName: branch,
-                    url: issueUrl
+                    headRefName: branch
                   }
                 })
               });
