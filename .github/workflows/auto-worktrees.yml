@@ -305,6 +305,17 @@ jobs:
 
       # generate key changes with claude
 
+      - name: create tmux window
+        env:
+          NAME: ${{ matrix.worktree.name }}
+          WORKTREE_NAME: ${{ matrix.worktree.worktreeName }}
+          WORKTREE_PATH: ${{ matrix.worktree.worktreePath }}
+        run:
+          tmux new-window -t agents \
+            -c "${NAME}#${WORKTREE_PATH}" \
+            -n $WORKTREE_NAME \
+            claude --dangerously-skip-permissions
+
       - name: update bolt
         uses: actions/github-script@v7
         env:
