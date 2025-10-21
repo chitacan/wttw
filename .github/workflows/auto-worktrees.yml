@@ -256,6 +256,7 @@ jobs:
       - name: run after create worktree hook
         working-directory: ${{ matrix.worktree.worktreePath }}
         if: ${{ matrix.worktree.afterCreateHook }}
+        continue-on-error: true
         run: ${{ matrix.worktree.afterCreateHook }}
 
       - name: create code-workspace file
