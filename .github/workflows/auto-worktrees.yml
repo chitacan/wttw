@@ -2,8 +2,8 @@ name: Auto Worktrees
 description: Automatically create worktrees for open PRs.
 on:
   # run every hour
-  # schedule:
-  #   - cron: '0 * * * *'
+  schedule:
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       {}
@@ -308,10 +308,10 @@ jobs:
 
       # generate key changes with claude
 
-      # - name: create happy session
-      #   working-directory: ${{ matrix.worktree.worktreePath }}
-      #   run: |
-      #     happy --yolo -p "Summarize the key code changes made in this branch compared to the base branch '${{ matrix.worktree.baseRefName }}'. Focus on the most important modifications, new features, and bug fixes. Keep it concise and relevant for a pull request description."
+      - name: create happy agent session
+        working-directory: ${{ matrix.worktree.worktreePath }}
+        run: |
+          happy --yolo -p "Use review-helper agent to summarize key changes made in this PR"
 
       - name: add worktree to bolt
         uses: actions/github-script@v7
