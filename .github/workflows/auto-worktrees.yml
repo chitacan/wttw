@@ -308,16 +308,10 @@ jobs:
 
       # generate key changes with claude
 
-      - name: create tmux window
-        env:
-          NAME: ${{ matrix.worktree.name }}
-          WORKTREE_NAME: ${{ matrix.worktree.worktreeName }}
-          WORKTREE_PATH: ${{ matrix.worktree.worktreePath }}
-        run: |
-          tmux new-window -t agents \
-            -n "${NAME}#${WORKTREE_NAME}" \
-            -c $WORKTREE_PATH \
-            claude --dangerously-skip-permissions
+      # - name: create happy session
+      #   working-directory: ${{ matrix.worktree.worktreePath }}
+      #   run: |
+      #     happy --yolo -p "Summarize the key code changes made in this branch compared to the base branch '${{ matrix.worktree.baseRefName }}'. Focus on the most important modifications, new features, and bug fixes. Keep it concise and relevant for a pull request description."
 
       - name: add worktree to bolt
         uses: actions/github-script@v7
