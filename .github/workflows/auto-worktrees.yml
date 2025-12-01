@@ -308,10 +308,10 @@ jobs:
 
       # generate key changes with claude
 
-      - name: create happy agent session
-        working-directory: ${{ matrix.worktree.worktreePath }}
-        run: |
-          happy --yolo -p "Use review-helper agent to summarize key changes made in this PR"
+      # - name: create happy agent session
+      #   working-directory: ${{ matrix.worktree.worktreePath }}
+      #   run: |
+      #     happy --yolo -p "Use review-helper agent to summarize key changes made in this PR"
 
       - name: add worktree to bolt
         uses: actions/github-script@v7
