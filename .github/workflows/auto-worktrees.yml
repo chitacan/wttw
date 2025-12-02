@@ -141,7 +141,9 @@ jobs:
             const worktreesPath = process.env.WORKTREES_PATH;
             const boltApi = process.env.BOLT_API;
 
-            const prs = require(join(worktreesPath, 'context/wttw-prs.json'));
+            const prs = require(join(worktreesPath, 'context/wttw-prs.json'))
+              .filter(({author}) => author.login !== process.env.ME && author.login !== 'app/dependabot');
+
             await fetch(`${boltApi}/sync`, {
               method: 'POST',
               headers: {
@@ -176,7 +178,6 @@ jobs:
 
             const targetWorktrees = prs
               .filter(({state}) => state === 'OPEN')
-              .filter(({author}) => author.login !== process.env.ME)
               .filter(({author, number}) => {
                 const worktreePath = join(worktreesPath, `pr-${number}`);
                 return !existsSync(worktreePath);
