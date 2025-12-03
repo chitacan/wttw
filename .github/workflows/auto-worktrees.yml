@@ -307,12 +307,10 @@ jobs:
 
             writeFileSync(wttwFile, worktree);
 
-      # generate key changes with claude
-
-      # - name: create happy agent session
-      #   working-directory: ${{ matrix.worktree.worktreePath }}
-      #   run: |
-      #     happy --yolo -p "Use review-helper agent to summarize key changes made in this PR"
+      - name: create PR summary with review-helper
+        working-directory: ${{ matrix.worktree.worktreePath }}
+        run: |
+          claude --allow-dangerously-skip-permissions -p "review-helper 에이전트를 사용해서 이 PR 에서 이루어진 주요 변경 사항을 요약해줘" > REVIEW_SUMMARY.md
 
       - name: add worktree to bolt
         uses: actions/github-script@v7
@@ -344,13 +342,23 @@ jobs:
           ZAPIER_WEBHOOK_URL: ${{ secrets.ZAPIER_WEBHOOK_URL }}
         with:
           script: |
-            const worktree = process.env.WORKTREE;
+            const {resolve} = require('path');
+            const {existsSync, readFileSync} = require('fs');
+
+            const worktree = JSON.parse(process.env.WORKTREE);
             const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL;
+            const reviewSummaryPath = resolve(worktree.worktreePath, 'REVIEW_SUMMARY.md');
+            const reviewSummary = existsSync(reviewSummaryPath)
+              ? readFileSync(reviewSummaryPath, 'utf8')
+              : 'No review summary available.';
 
             await fetch(zapierWebhookUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: worktree
+              body: JSON.stringify({
+                ...worktree,
+                reviewSummary
+              })
             });
