@@ -310,6 +310,8 @@ jobs:
       - name: create PR summary with review-helper
         working-directory: ${{ matrix.worktree.worktreePath }}
         continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           claude --allow-dangerously-skip-permissions -p "review-helper 에이전트를 사용해서 이 PR 에서 이루어진 주요 변경 사항을 요약해줘" > REVIEW_SUMMARY.md
 
