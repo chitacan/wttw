@@ -5,11 +5,12 @@ on:
       {}
 
 jobs:
-  check_config:
+  debug:
     runs-on: [self-hosted, cmms]
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - name: Debug Environment
-        continue-on-error: true
         run: |
           echo "user: $(whoami)"
           echo "HOME: $HOME"
@@ -18,4 +19,4 @@ jobs:
           which claude || echo "claude not found"
           echo "claude version:"
           claude --version || echo "cannot run claude"
-          ls -R "$HOME"
+          claude -p "hello?"
