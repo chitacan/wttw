@@ -1,0 +1,21 @@
+name: Action Debugger
+on:
+  workflow_dispatch:
+    inputs:
+      {}
+
+jobs:
+  check_config:
+    runs-on: [self-hosted, cmms]
+    steps:
+      - name: Debug Environment
+        continue-on-error: true
+        run: |
+          echo "user: $(whoami)"
+          echo "HOME: $HOME"
+          echo "PWD: $(pwd)"
+          echo "which claude:"
+          which claude || echo "claude not found"
+          echo "claude version:"
+          claude --version || echo "cannot run claude"
+          ls -R "$HOME"
