@@ -10,13 +10,7 @@ jobs:
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
-      - name: Debug Environment
+      - name: review
+        working-directory: /users/chitacan/git/cortex/pr-461
         run: |
-          echo "user: $(whoami)"
-          echo "HOME: $HOME"
-          echo "PWD: $(pwd)"
-          echo "which claude:"
-          which claude || echo "claude not found"
-          echo "claude version:"
-          claude --version || echo "cannot run claude"
-          claude -p "hello?"
+          claude --allow-dangerously-skip-permissions -p "review-helper 에이전트를 사용해서 이 PR 에서 이루어진 주요 변경 사항을 요약해줘" > REVIEW_SUMMARY.md
