@@ -125,7 +125,7 @@ jobs:
         id: fetch_prs
         working-directory: ${{ matrix.config.path }}/${{ matrix.config.mainBranch }}
         run: |
-          gh pr list --state all --json number,title,body,headRefName,baseRefName,author,createdAt,url,state,reviewDecision,isDraft > ../context/wttw-prs.json
+          gh pr list --limit 50 --search "-author:@me -author:app/dependabot" --state all --json number,title,body,headRefName,baseRefName,author,createdAt,url,state,reviewDecision,isDraft > ../context/wttw-prs.json
 
       - name: sync worktrees status
         uses: actions/github-script@v7
@@ -141,8 +141,7 @@ jobs:
             const worktreesPath = process.env.WORKTREES_PATH;
             const boltApi = process.env.BOLT_API;
 
-            const prs = require(join(worktreesPath, 'context/wttw-prs.json'))
-              .filter(({author}) => author.login !== process.env.ME && author.login !== 'app/dependabot');
+            const prs = require(join(worktreesPath, 'context/wttw-prs.json'));
 
             await fetch(`${boltApi}/sync`, {
               method: 'POST',
