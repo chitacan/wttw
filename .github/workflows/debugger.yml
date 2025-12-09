@@ -7,10 +7,8 @@ on:
 jobs:
   debug:
     runs-on: [self-hosted, cmms]
-    env:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
-      - name: review
+      - name: debug claude in action
         working-directory: /users/chitacan/git/cortex/pr-461
         run: |
-          claude mcp list
+          claude -p hello?
