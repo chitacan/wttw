@@ -11,4 +11,5 @@ jobs:
       - name: debug claude in action
         working-directory: /users/chitacan/git/cortex/pr-461
         run: |
+          security unlock-keychain -p ${{ secrets.CMMS_PASSWORD }} ~/Library/Keychains/login.keychain-db
           claude -p hello?
