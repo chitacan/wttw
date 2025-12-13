@@ -313,7 +313,7 @@ jobs:
           DISABLE_CUSTOM_HOOK: 1
         run: |
           security unlock-keychain -p ${{ secrets.CMMS_PASSWORD }} ~/Library/Keychains/login.keychain-db
-          claude --allow-dangerously-skip-permissions -p "pr-quick-summary 에이전트로 이 PR 에서 이루어진 주요 변경 사항을 요약해" > REVIEW_SUMMARY.md
+          claude --allow-dangerously-skip-permissions -p "@pr-quick-summary Analyze this PR and output exactly 3 lines." > REVIEW_SUMMARY.md
 
       - name: add worktree to bolt
         uses: actions/github-script@v7
