@@ -64,7 +64,7 @@ jobs:
             url.pathname = join('tunnel', 'cmms', workspaceFile);
             url.searchParams.set('payload', JSON.stringify([['profile', vscodeProfile]]));
 
-            const worktree = await fetch(`${boltApi}/${name}/0`)
+            const worktree = await fetch(`${boltApi}/worktrees/${name}/0`)
               .then(res => res.json())
               .then(({data}) => data)
               .catch(() => false);
@@ -72,7 +72,7 @@ jobs:
             console.log(`Worktree: ${JSON.stringify(worktree)}`);
 
             if (!worktree) {
-              await fetch(boltApi, {
+              await fetch(`${boltApi}/worktrees`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
@@ -92,7 +92,7 @@ jobs:
                 })
               });
             } else {
-              await fetch(`${boltApi}/${worktree.id}`, {
+              await fetch(`${boltApi}/worktrees/${worktree.id}`, {
                 method: 'PATCH',
                 headers: {
                   'Content-Type': 'application/json'
@@ -143,7 +143,7 @@ jobs:
 
             const prs = require(join(worktreesPath, 'context/wttw-prs.json'));
 
-            await fetch(`${boltApi}/sync`, {
+            await fetch(`${boltApi}/worktrees/sync`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -330,7 +330,7 @@ jobs:
             const prs = require(resolve(worktree.worktreePath, '../context/wttw-prs.json'));
             const {body} = prs.filter(pr => pr.number === worktree.number)[0] || {};
 
-            await fetch(boltApi, {
+            await fetch(`${boltApi}/worktrees`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'

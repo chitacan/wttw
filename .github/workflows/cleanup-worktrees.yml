@@ -24,13 +24,26 @@ jobs:
         uses: actions/github-script@v7
         id: get_configs
         env:
+          BOLT_API: ${{ secrets.BOLT_API }}
           SELECTED_REPO: ${{ github.event.inputs.repo }}
         with:
           script: |
             const selectedRepo = process.env.SELECTED_REPO || 'cortex';
-            const configs = require('./.github/auto-worktrees-config.json')
-              .filter(config => config.name === selectedRepo)
-              .filter(config => config.afterMergeHook);
+            const boltApi = process.env.BOLT_API;
+
+            const url = new URL(`${boltApi}/worktree_configs`);
+
+            url.searchParams.append('filters[0][field]', 'name');
+            url.searchParams.append('filters[0][value]', selectedRepo);
+
+            url.searchParams.append('filters[1][field]', 'after_merge_hook');
+            url.searchParams.append('filters[1][op]', 'empty');
+            url.searchParams.append('filters[1][value]', false);
+
+            const configs = await fetch(url.toString())
+              .then(res => res.json())
+              .then(({data}) => data)
+              .catch(() => []);
 
             core.setOutput('configs', JSON.stringify(configs));
 
@@ -55,8 +68,8 @@ jobs:
             const weekAgo = getWeekAgo();
 
             let hooks = [];
-            for (const {name, afterMergeHook} of configs) {
-              const url = new URL(`${boltApi}`);
+            for (const {name, after_merge_hook} of configs) {
+              const url = new URL(`${boltApi}/worktrees`);
 
               url.searchParams.append('filters[0][field]', 'name');
               url.searchParams.append('filters[0][value]', name);
@@ -70,7 +83,7 @@ jobs:
 
               const result = await fetch(url.toString())
                 .then(res => res.json())
-                .then(({data}) => data.map(worktree => ({cmd: afterMergeHook, path: worktree.worktree_path})))
+                .then(({data}) => data.map(worktree => ({cmd: after_merge_hook, path: worktree.worktree_path})))
                 .catch(() => []);
 
               hooks = hooks.concat(result);
