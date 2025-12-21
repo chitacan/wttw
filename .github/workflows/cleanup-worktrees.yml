@@ -1,0 +1,94 @@
+name: Cleanup Worktrees
+on:
+  # schedule:
+  #   - cron: '0 0 * * 0'  # Runs weekly at midnight on Sunday
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Repository to cleanup'
+        type: choice
+        default: cortex
+        required: true
+        options:
+          - cortex
+          - bros
+
+jobs:
+  get_hooks:
+    runs-on: [self-hosted, cmms]
+    outputs:
+      hooks: ${{ steps.get_hooks.outputs.hooks }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get configs
+        uses: actions/github-script@v7
+        id: get_configs
+        env:
+          SELECTED_REPO: ${{ github.event.inputs.repo }}
+        with:
+          script: |
+            const selectedRepo = process.env.SELECTED_REPO || 'cortex';
+            const configs = require('./.github/auto-worktrees-config.json')
+              .filter(config => config.name === selectedRepo)
+              .filter(config => config.afterMergeHook);
+
+            core.setOutput('configs', JSON.stringify(configs));
+
+      - name: Get after merge hooks
+        uses: actions/github-script@v7
+        if: ${{ steps.get_configs.outputs.configs != '[]' }}
+        id: get_hooks
+        env:
+          BOLT_API: ${{ secrets.BOLT_API }}
+          CONFIGS: ${{ steps.get_configs.outputs.configs }}
+        with:
+          script: |
+            function getWeekAgo() {
+              const now = new Date();
+              const weekAgo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+              weekAgo.setUTCDate(weekAgo.getUTCDate() - 7);
+              return weekAgo.toISOString();
+            }
+
+            const boltApi = process.env.BOLT_API;
+            const configs = JSON.parse(process.env.CONFIGS);
+            const weekAgo = getWeekAgo();
+
+            let hooks = [];
+            for (const {name, afterMergeHook} of configs) {
+              const url = new URL(`${boltApi}`);
+
+              url.searchParams.append('filters[0][field]', 'name');
+              url.searchParams.append('filters[0][value]', name);
+
+              url.searchParams.append('filters[1][field]', 'state');
+              url.searchParams.append('filters[1][value]', 'MERGED');
+
+              url.searchParams.append('filters[2][field]', 'updated_at');
+              url.searchParams.append('filters[2][op]', '>=');
+              url.searchParams.append('filters[2][value]', weekAgo);
+
+              const result = await fetch(url.toString())
+                .then(res => res.json())
+                .then(({data}) => data.map(worktree => ({cmd: afterMergeHook, path: worktree.worktree_path})))
+                .catch(() => []);
+
+              hooks = hooks.concat(result);
+            }
+
+            core.setOutput('hooks', JSON.stringify(hooks));
+
+  run_after_merge_hooks:
+    needs: get_hooks
+    runs-on: [self-hosted, cmms]
+    if: ${{ needs.get_hooks.outputs.hooks != '[]' }}
+    strategy:
+      max-parallel: 2
+      matrix:
+        hook: ${{ fromJson(needs.get_hooks.outputs.hooks ) }}
+    steps:
+      - name: Run after merge hook
+        working-directory: ${{ matrix.hook.path }}
+        run: |
+          echo "Cleaning up worktree at path: $(pwd)"
+          ${{ matrix.hook.cmd }}
