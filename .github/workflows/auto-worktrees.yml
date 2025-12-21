@@ -18,11 +18,19 @@ jobs:
       - run: npm i
       - uses: actions/github-script@v7
         id: read_config
+        env:
+          BOLT_API: ${{ secrets.BOLT_API }}
         with:
           script: |
-            const config = require('./.github/auto-worktrees-config.json');
+            const boltApi = process.env.BOLT_API;
+            const url = new URL(`${boltApi}/worktree_configs`);
 
-            core.setOutput('config', JSON.stringify(config));
+            const configs = await fetch(url.toString())
+              .then(res => res.json())
+              .then(({data}) => data)
+              .catch(() => []);
+
+            core.setOutput('config', JSON.stringify(configs));
 
   update_workspace_worktree:
     needs: check_config
@@ -38,9 +46,9 @@ jobs:
         uses: actions/github-script@v7
         env:
           NAME: ${{ matrix.config.name }}
-          VSCODE_PROFILE: ${{ matrix.config.vscodeProfile }}
+          VSCODE_PROFILE: ${{ matrix.config.vscode_profile }}
           WORKTREES_PATH: ${{ matrix.config.path }}
-          MAIN_BRANCH: ${{ matrix.config.mainBranch }}
+          MAIN_BRANCH: ${{ matrix.config.main_branch }}
           BOLT_API: ${{ secrets.BOLT_API }}
         with:
           script: |
@@ -118,12 +126,12 @@ jobs:
 
     steps:
       - name: fetch branches
-        working-directory: ${{ matrix.config.path }}/${{ matrix.config.mainBranch }}
+        working-directory: ${{ matrix.config.path }}/${{ matrix.config.main_branch }}
         run: git fetch --all
 
       - name: fetch prs
         id: fetch_prs
-        working-directory: ${{ matrix.config.path }}/${{ matrix.config.mainBranch }}
+        working-directory: ${{ matrix.config.path }}/${{ matrix.config.main_branch }}
         run: |
           gh pr list --limit 50 --search "-author:@me -author:app/dependabot" --state all --json number,title,body,headRefName,baseRefName,author,createdAt,url,state,reviewDecision,isDraft > ../context/wttw-prs.json
 
@@ -157,9 +165,9 @@ jobs:
         env:
           NAME: ${{ matrix.config.name }}
           WORKTREES_PATH: ${{ matrix.config.path }}
-          MAIN_BRANCH: ${{ matrix.config.mainBranch }}
-          VSCODE_PROFILE: ${{ matrix.config.vscodeProfile }}
-          AFTER_CREATE_HOOK: ${{ matrix.config.afterCreateHook }}
+          MAIN_BRANCH: ${{ matrix.config.main_branch }}
+          VSCODE_PROFILE: ${{ matrix.config.vscode_profile }}
+          AFTER_CREATE_HOOK: ${{ matrix.config.after_create_hookj }}
           ME: ${{ github.actor }}
         with:
           script: |
@@ -215,13 +223,22 @@ jobs:
       - name: aggregate worktrees
         id: aggregate_worktrees
         uses: actions/github-script@v7
+        env:
+          BOLT_API: ${{ secrets.BOLT_API }}
         with:
           script: |
             const {join} = require('path');
             const {readFileSync, existsSync} = require('fs');
-            const config = require('./.github/auto-worktrees-config.json');
 
-            const targetWorktrees = config.map(({path}) => {
+            const boltApi = process.env.BOLT_API;
+            const url = new URL(`${boltApi}/worktree_configs`);
+
+            const configs = await fetch(url.toString())
+              .then(res => res.json())
+              .then(({data}) => data)
+              .catch(() => []);
+
+            const targetWorktrees = configs.map(({path}) => {
               const worktreesPath = join(path, 'context', 'wttw-worktrees.json');
               if (existsSync(worktreesPath)) {
                 const worktrees = JSON.parse(readFileSync(worktreesPath, 'utf8'));
