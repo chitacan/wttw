@@ -167,7 +167,7 @@ jobs:
           WORKTREES_PATH: ${{ matrix.config.path }}
           MAIN_BRANCH: ${{ matrix.config.main_branch }}
           VSCODE_PROFILE: ${{ matrix.config.vscode_profile }}
-          AFTER_CREATE_HOOK: ${{ matrix.config.after_create_hookj }}
+          AFTER_CREATE_HOOK: ${{ matrix.config.after_create_hook }}
           ME: ${{ github.actor }}
         with:
           script: |
@@ -267,6 +267,7 @@ jobs:
           echo "worktree path: ${{ matrix.worktree.worktreePath }}"
           echo "worktree name: ${{ matrix.worktree.worktreeName }}"
           echo "workspace url: ${{ matrix.worktree.workspaceUrl }}"
+          echo "workspace hook: ${{ matrix.worktree.afterCreateHook }}"
 
           wttw new ${{ matrix.worktree.worktreeName }} --base-ref origin/${{ matrix.worktree.headRefName }} --no-tmux
 
