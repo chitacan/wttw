@@ -341,8 +341,8 @@ jobs:
           WORKTREE_PATH: ${{ matrix.worktree.worktreePath }}
         run:
           tmux new-window -t agents \
-            -c "${NAME}#${WORKTREE_PATH}" \
-            -n $WORKTREE_NAME \
+            -n "${NAME}#${WORKTREE_NAME}" \
+            -c $WORKTREE_PATH \
             happy --yolo
 
       - name: add worktree to bolt
