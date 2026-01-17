@@ -1,0 +1,110 @@
+name: Create Worktree
+description: Create or setup a git worktree for a given GitHub url.
+on:
+  workflow_dispatch:
+    inputs:
+      github_url:
+        description: 'GitHub URL'
+        required: true
+      initial_prompt:
+        description: 'Initial prompt for happy'
+        default: ''
+      create_config:
+        description: 'Branch name to checkout'
+        type: boolean
+
+jobs:
+  create-worktree:
+    runs-on: [self-hosted, cmms]
+    steps:
+      - name: Parse URL
+        id: parse_url
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const githubUrl = new URL('${{ github.event.inputs.github_url}}');
+            const [, org, repo, type, pr = ''] = githubUrl.pathname.split('/');
+
+            core.setOutput('is_pr', type === 'pull' && pr !== '');
+            core.setOutput('pr', pr);
+            core.setOutput('repo', repo);
+            core.setOutput('slug', `${org}/${repo}`);
+
+      - name: Check main branch
+        id: main_branch
+        run: |
+          echo "main_branch=$(gh repo view ${{ steps.parse_url.outputs.slug }} --json defaultBranchRef --jq '.defaultBranchRef.name')" >> $GITHUB_OUTPUT
+
+      - name: create main directory if needed
+        id: check_repo
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {existsSync, mkdirSync} = require('fs');
+            const {join} = require('path');
+
+            const gitPath = '/users/chitacan/git';
+            const repo = '${{ steps.parse_url.outputs.repo }}';
+            const mainBranch = '${{ steps.main_branch.outputs.main_branch }}';
+            const mainPath = join(gitPath, repo, mainBranch);
+            const contextPath = join(gitPath, repo, 'context');
+
+            core.setOutput('main_path', mainPath);
+
+            if (!existsSync(mainPath)) {
+              mkdirSync(mainPath, { recursive: true });
+              mkdirSync(contextPath, { recursive: true });
+              core.setOutput('main_created', 'true');
+            }
+
+            if ('${{ steps.parse_url.outputs.is_pr }}' === 'true') {
+              const pr = '${{ steps.parse_url.outputs.pr }}';
+              const worktreeName = `pr-${pr}`;
+              const worktree_path = join(gitPath, repo, worktreeName);
+
+              core.setOutput('worktree_name', worktreeName);
+              core.setOutput('window_name', `${repo}#${worktreeName}`);
+              core.setOutput('worktree_path', worktree_path);
+              core.setOutput('worktree_exists', existsSync(worktree_path) ? 'true' : 'false');
+            } else {
+              core.setOutput('worktree_name', mainBranch);
+              core.setOutput('window_name', `${repo}#${mainBranch}`);
+              core.setOutput('worktree_path', mainPath);
+            }
+
+      # For main
+      - name: Create or setup main
+        if: ${{ steps.check_repo.outputs.main_created == 'true' }}
+        run:
+          gh repo clone ${{ steps.parse_url.outputs.slug }} ${{ steps.check_repo.outputs.main_path }}
+
+      - name: create tmux window for main
+        if: ${{ steps.check_repo.outputs.main_created == 'true' && steps.parse_url.outputs.is_pr == 'false' }}
+        continue-on-error: true
+        run: |
+          tmux new-window -t agents \
+            -n "${{ steps.check_repo.outputs.window_name }}" \
+            -c ${{ steps.check_repo.outputs.main_path }} \
+            happy --yolo ${{ github.event.inputs.initial_prompt }}
+          
+          happy notify -p "${{ steps.check_repo.outputs.window_name }} is ready"
+
+      # For worktrees
+      - name: Create worktree if needed
+        if: ${{ steps.check_repo.outputs.worktree_exists == 'false' }}
+        working-directory: ${{ steps.check_repo.outputs.main_path }}
+        run: |
+          HEAD_REF_NAME=$(gh pr view ${{ steps.parse_url.outputs.pr }} --repo ${{ steps.parse_url.outputs.slug }} --json headRefName --jq '.headRefName')
+          git fetch origin pull/${{ steps.parse_url.outputs.pr }}/head:$HEAD_REF_NAME
+          wttw new ${{ steps.check_repo.outputs.worktree_name }} --base-ref $HEAD_REF_NAME --no-tmux
+
+      - name: create tmux window for worktree
+        if: ${{ steps.check_repo.outputs.worktree_exists == 'false' }}
+        continue-on-error: true
+        run: |
+          tmux new-window -t agents \
+            -n "${{ steps.check_repo.outputs.window_name }}" \
+            -c ${{ steps.check_repo.outputs.worktree_path }} \
+            happy --yolo ${{ github.event.inputs.initial_prompt }}
+
+          happy notify -p "${{ steps.check_repo.outputs.window_name }} is ready"
