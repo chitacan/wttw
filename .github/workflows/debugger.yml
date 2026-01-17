@@ -9,7 +9,8 @@ jobs:
     runs-on: [self-hosted, cmms]
     steps:
       - name: debug claude in action
-        working-directory: /users/chitacan/git/cortex/pr-461
+        working-directory: /users/chitacan/git/cortex/pr-597
         run: |
-          security unlock-keychain -p ${{ secrets.CMMS_PASSWORD }} ~/Library/Keychains/login.keychain-db
-          claude -p hello?
+          tmux new-window -t agents \
+            -n "cortex#pr-597" \
+            happy --yolo
