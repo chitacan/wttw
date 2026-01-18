@@ -2,15 +2,19 @@ name: Action Debugger
 on:
   workflow_dispatch:
     inputs:
-      {}
+      github_url:
+        description: 'GitHub URL'
+        required: true
+      initial_prompt:
+        description: 'Initial prompt for happy'
+        default: ''
 
 jobs:
   debug:
     runs-on: [self-hosted, cmms]
     steps:
-      - name: debug claude in action
-        working-directory: /users/chitacan/git/cortex/pr-597
+      - name: debug
         run: |
-          tmux new-window -t agents \
-            -n "cortex#pr-597" \
-            happy --yolo
+          echo "GitHub URL: ${{ github.event.inputs.github_url }}"
+          echo "Initial Prompt: ${{ github.event.inputs.initial_prompt }}"
+          echo "it works!"
