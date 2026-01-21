@@ -1,5 +1,5 @@
-name: Create Worktree
-description: Create or setup a git worktree for a given GitHub url.
+name: Setup Worktree
+description: Setup a git worktree for a given GitHub Repo or PR URL.
 on:
   workflow_dispatch:
     inputs:
@@ -14,7 +14,7 @@ on:
         type: boolean
 
 jobs:
-  create-worktree:
+  setup-worktree:
     runs-on: [self-hosted, cmms]
     steps:
       - name: Parse URL
@@ -78,7 +78,7 @@ jobs:
             }
 
       # For main
-      - name: Create or setup main
+      - name: Setup main
         if: ${{ steps.check_repo.outputs.main_created == 'true' }}
         run:
           gh repo clone ${{ steps.parse_url.outputs.slug }} ${{ steps.check_repo.outputs.main_path }}
