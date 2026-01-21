@@ -277,53 +277,6 @@ jobs:
         continue-on-error: true
         run: ${{ matrix.worktree.afterCreateHook }}
 
-      - name: create code-workspace file
-        if: always()
-        uses: actions/github-script@v7
-        env:
-          WORKTREE: ${{ toJSON(matrix.worktree) }}
-          WTD: ${{ matrix.worktree.wtd }}
-          WORKTREE_PATH: ${{ matrix.worktree.worktreePath }}
-          WORKSPACE_FILE: ${{ matrix.worktree.workspaceFile }}
-        with:
-          script: |
-            const {parse, stringify, assign} = require('comment-json');
-            const {basename, resolve, join} = require('path');
-            const {readFileSync, writeFileSync, existsSync} = require('fs');
-
-            const worktree = process.env.WORKTREE;
-            const wtd = process.env.WTD;
-            const worktreePath = process.env.WORKTREE_PATH;
-            const workspaceFile = process.env.WORKSPACE_FILE;
-
-            const mainBranch = basename(wtd);
-            const branch = basename(worktreePath);
-            const repoName = basename(resolve(wtd, '..'));
-
-            const workspaceFileFrom = resolve(wtd, '..', 'context', 'workspaces', `${mainBranch}.code-workspace`);
-            const wttwFile = resolve(worktreePath, '.wttw.json');
-
-            if (existsSync(workspaceFileFrom)) {
-              const workspace = parse(readFileSync(workspaceFileFrom, 'utf8'));
-              const updatedFolders = workspace.folders.map(folder => {
-                if (folder.name === repoName) {
-                  return {
-                    ...folder,
-                    path: join('..', '..', branch)
-                  };
-                }
-                return folder;
-              });
-              const updatedWorkspace = assign(workspace, {
-                folders: updatedFolders
-              });
-              writeFileSync(workspaceFile, stringify(updatedWorkspace, null, 2));
-            } else {
-              core.info(`Workspace file ${workspaceFileFrom} does not exist, skipping creation.`);
-            }
-
-            writeFileSync(wttwFile, worktree);
-
       - name: create PR summary with pr-quick-summary
         working-directory: ${{ matrix.worktree.worktreePath }}
         continue-on-error: true
