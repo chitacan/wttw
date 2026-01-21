@@ -25,6 +25,11 @@ jobs:
             const githubUrl = new URL('${{ github.event.inputs.github_url}}');
             const [, org, repo, type, pr = ''] = githubUrl.pathname.split('/');
 
+            if (['stars', 'settings', 'copilot'].includes(org) || !repo) {
+              core.setFailed(`Cannot create worktree for URL: ${githubUrl.href}`);
+              return;
+            }
+
             core.setOutput('is_pr', type === 'pull' && pr !== '');
             core.setOutput('pr', pr);
             core.setOutput('repo', repo);
