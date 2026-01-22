@@ -101,7 +101,7 @@ jobs:
         run: |
           HEAD_REF_NAME=$(gh pr view ${{ steps.parse_url.outputs.pr }} --repo ${{ steps.parse_url.outputs.slug }} --json headRefName --jq '.headRefName')
           git fetch origin pull/${{ steps.parse_url.outputs.pr }}/head:$HEAD_REF_NAME
-          wttw new ${{ steps.check_repo.outputs.worktree_name }} --base-ref $HEAD_REF_NAME --no-tmux
+          wttw new ${{ steps.check_repo.outputs.worktree_name }} --base-ref $HEAD_REF_NAME
 
       - name: create tmux window for worktree
         if: ${{ steps.check_repo.outputs.worktree_exists == 'false' }}

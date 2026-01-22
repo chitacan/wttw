@@ -269,7 +269,7 @@ jobs:
           echo "workspace url: ${{ matrix.worktree.workspaceUrl }}"
           echo "workspace hook: ${{ matrix.worktree.afterCreateHook }}"
 
-          wttw new ${{ matrix.worktree.worktreeName }} --base-ref origin/${{ matrix.worktree.headRefName }} --no-tmux
+          wttw new ${{ matrix.worktree.worktreeName }} --base-ref origin/${{ matrix.worktree.headRefName }}
 
       - name: run after create worktree hook
         working-directory: ${{ matrix.worktree.worktreePath }}
