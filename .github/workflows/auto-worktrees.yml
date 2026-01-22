@@ -292,7 +292,7 @@ jobs:
           NAME: ${{ matrix.worktree.name }}
           WORKTREE_NAME: ${{ matrix.worktree.worktreeName }}
           WORKTREE_PATH: ${{ matrix.worktree.worktreePath }}
-        run:
+        run: |
           tmux new-window -t agents \
             -n "${NAME}#${WORKTREE_NAME}" \
             -c $WORKTREE_PATH \
