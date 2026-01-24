@@ -32,7 +32,7 @@ end
 complete -f -c wttw -n '__fish_wttw_needs_command' -a new -d "create new git worktree"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a clean -d "cleanup worktree"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a default-files -d "copy default_files to current directory"
-complete -f -c wttw -n '__fish_wttw_needs_command' -a tmux -d "open path in tmux window"
+complete -f -c wttw -n '__fish_wttw_needs_command' -a tmux -d "open worktree in tmux window"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a open -d "open worktree in browser"
 
 # new command
@@ -52,7 +52,7 @@ complete -f -c wttw -n '__fish_wttw_using_command clean; or __fish_wttw_using_co
 complete -f -c wttw -n '__fish_wttw_using_command clean; or __fish_wttw_using_command c' -d "keep worktree" -s w -l keep-worktree
 
 # tmux command
-complete -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -a '(__fish_complete_directories)'
+complete -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -a '(__fish_wttw_worktrees)'
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux pane count" -s p -l pane
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux session name" -s s -l session
 
