@@ -1,0 +1,32 @@
+name: Open Worktree
+description: Setup a git worktree for a given GitHub Repo or PR URL.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'vscode tunnel url'
+        required: true
+      space:
+        description: 'space to open url'
+        required: true
+
+jobs:
+  setup-worktree:
+    runs-on: [self-hosted, cmba-15]
+    steps:
+      - name: Open vscode url in arc browser
+        run: |
+          osascript <<EOF
+            tell application "Arc"
+              if (count of windows) is 0 then
+                make new window
+              end if
+
+              tell front window
+                tell space "${{ github.event.inputs.space }}" to focus
+                make new tab with properties {URL:"${{ github.event.inputs.url }}"}
+              end tell
+
+              activate
+            end tell
+            EOF
