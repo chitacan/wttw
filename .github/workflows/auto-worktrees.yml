@@ -269,7 +269,11 @@ jobs:
           echo "workspace url: ${{ matrix.worktree.workspaceUrl }}"
           echo "workspace hook: ${{ matrix.worktree.afterCreateHook }}"
 
-          wttw new ${{ matrix.worktree.worktreeName }} --base-ref origin/${{ matrix.worktree.headRefName }}
+          wttw new ${{ matrix.worktree.worktreeName }} \
+            --session agents \
+            --base-ref origin/${{ matrix.worktree.headRefName }} \
+            --tmux \
+            --cmd 'happy --yolo'
 
       - name: run after create worktree hook
         working-directory: ${{ matrix.worktree.worktreePath }}
@@ -285,18 +289,6 @@ jobs:
         run: |
           security unlock-keychain -p ${{ secrets.CMMS_PASSWORD }} ~/Library/Keychains/login.keychain-db
           claude --allow-dangerously-skip-permissions -p "@pr-quick-summary Analyze this PR. Output ONLY the 4-line format, nothing else." > REVIEW_SUMMARY.md
-
-      - name: create tmux window
-        continue-on-error: true
-        env:
-          NAME: ${{ matrix.worktree.name }}
-          WORKTREE_NAME: ${{ matrix.worktree.worktreeName }}
-          WORKTREE_PATH: ${{ matrix.worktree.worktreePath }}
-        run: |
-          tmux new-window -t agents \
-            -n "${NAME}#${WORKTREE_NAME}" \
-            -c $WORKTREE_PATH \
-            happy --yolo
 
       - name: add worktree to bolt
         uses: actions/github-script@v7

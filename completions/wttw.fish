@@ -38,7 +38,7 @@ complete -f -c wttw -n '__fish_wttw_needs_command' -a open -d "open worktree in 
 # new command
 complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -a '(__fish_wttw_refs)'
 complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "open tmux window" -s t -l tmux
-complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "open vscode" -s c -l code
+complete -r -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "command to run in panes" -s c -l cmd
 complete -r -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "base ref new branch based at" -a '(__fish_wttw_original_refs)' -s r -l base-ref
 complete -r -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "tmux session name" -s s -l session
 complete -r -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "tmux pane count" -s p -l pane
@@ -55,6 +55,7 @@ complete -f -c wttw -n '__fish_wttw_using_command clean; or __fish_wttw_using_co
 complete -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -a '(__fish_wttw_worktrees)'
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux pane count" -s p -l pane
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux session name" -s s -l session
+complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "command to run in panes" -s c -l cmd
 
 # open command
 complete -f -c wttw -n '__fish_wttw_using_command open; or __fish_wttw_using_command o' -a '(__fish_wttw_worktrees)'
