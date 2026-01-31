@@ -24,6 +24,15 @@ function __fish_wttw_refs
   git for-each-ref --format="%(refname)" refs/ | sed -E "s/refs\/(heads|remotes)\/(origin\/)?//g" | sort -u
 end
 
+function __fish_wttw_templates
+  for f in ~/.config/wttw/*.json
+    set -l name (basename $f .json)
+    if test "$name" != "config"
+      echo $name
+    end
+  end
+end
+
 function __fish_wttw_worktrees
   git worktree list --porcelain | grep '^branch' | sed -E "s/branch refs\/heads\///g"
 end
@@ -34,6 +43,7 @@ complete -f -c wttw -n '__fish_wttw_needs_command' -a clean -d "cleanup worktree
 complete -f -c wttw -n '__fish_wttw_needs_command' -a default-files -d "copy default_files to current directory"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a tmux -d "open worktree in tmux window"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a open -d "open worktree in browser"
+complete -f -c wttw -n '__fish_wttw_needs_command' -a template -d "create tmux windows from a template"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a config -d "get or set config values"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a install-completion -d "install fish shell completion"
 
@@ -58,6 +68,9 @@ complete -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_com
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux pane count" -s p -l pane
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux session name" -s s -l session
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "command to run in panes" -s c -l cmd
+
+# template command
+complete -f -c wttw -n '__fish_wttw_using_command template; or __fish_wttw_using_command tp' -a '(__fish_wttw_templates)'
 
 # open command
 complete -f -c wttw -n '__fish_wttw_using_command open; or __fish_wttw_using_command o' -a '(__fish_wttw_worktrees)'
