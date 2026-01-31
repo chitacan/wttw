@@ -23,8 +23,39 @@ jobs:
               end if
 
               tell front window
-                tell space "${{ github.event.inputs.space }}" to focus
-                make new tab with properties {URL:"${{ github.event.inputs.url }}"}
+                set targetURL to "${{ github.event.inputs.url }}"
+                set targetSpace to "${{ github.event.inputs.space }}"
+                set tabFound to false
+                
+                repeat with _space in spaces
+                  set _title to get title of _space
+                  
+                  if _title is equal to targetSpace then
+                    tell _space
+                      set allTabs to properties of every tab
+                      set tabsCount to count of allTabs
+                      
+                      repeat with i from 1 to tabsCount
+                        set _tab to item i of allTabs
+                        set _url to get URL of _tab
+                        
+                        if _url is equal to targetURL then
+                          tell _space
+                            select tab i
+                          end tell
+                          set tabFound to true
+                          exit repeat
+                        end if
+                      end repeat
+                      
+                      if tabFound is false then
+                        focus
+                        make new tab with properties {URL:targetURL}
+                      end if
+                    end tell
+                    exit repeat
+                  end if
+                end repeat
               end tell
 
               activate
