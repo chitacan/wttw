@@ -34,6 +34,7 @@ complete -f -c wttw -n '__fish_wttw_needs_command' -a clean -d "cleanup worktree
 complete -f -c wttw -n '__fish_wttw_needs_command' -a default-files -d "copy default_files to current directory"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a tmux -d "open worktree in tmux window"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a open -d "open worktree in browser"
+complete -f -c wttw -n '__fish_wttw_needs_command' -a config -d "get or set config values"
 complete -f -c wttw -n '__fish_wttw_needs_command' -a install-completion -d "install fish shell completion"
 
 # new command
