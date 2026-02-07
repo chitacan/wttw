@@ -1,7 +1,7 @@
 name: Cleanup Worktrees
 on:
-  # schedule:
-  #   - cron: '0 0 * * 0'  # Runs weekly at midnight on Sunday
+  schedule:
+    - cron: '0 14 * * 0'  # Runs weekly at 23:00 KST on Sunday (14:00 UTC)
   workflow_dispatch:
     inputs:
       repo:
@@ -83,7 +83,14 @@ jobs:
 
               const result = await fetch(url.toString())
                 .then(res => res.json())
-                .then(({data}) => data.map(worktree => ({cmd: after_merge_hook, path: worktree.worktree_path})))
+                .then(({data}) => data.map(worktree => {
+                  return {
+                    cmd: after_merge_hook,
+                    path: worktree.worktree_path,
+                    name: worktree.name,
+                    worktreeName: worktree.worktree_name
+                  };
+                }))
                 .catch(() => []);
 
               hooks = hooks.concat(result);
@@ -103,5 +110,7 @@ jobs:
       - name: Run after merge hook
         working-directory: ${{ matrix.hook.path }}
         run: |
-          echo "Cleaning up worktree at path: $(pwd)"
+          echo "Cleanup worktree at path: $(pwd)"
           ${{ matrix.hook.cmd }}
+          echo "Cleanup tmux windows for worktree: ${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
+          tmux kill-window -t "${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}" 2>/dev/null || true
