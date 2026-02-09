@@ -281,15 +281,6 @@ jobs:
         continue-on-error: true
         run: ${{ matrix.worktree.afterCreateHook }}
 
-      - name: create PR summary with pr-quick-summary
-        working-directory: ${{ matrix.worktree.worktreePath }}
-        continue-on-error: true
-        env:
-          DISABLE_CUSTOM_HOOK: 1
-        run: |
-          security unlock-keychain -p ${{ secrets.CMMS_PASSWORD }} ~/Library/Keychains/login.keychain-db
-          claude --allow-dangerously-skip-permissions -p "@pr-quick-summary Analyze this PR. Output ONLY the 4-line format, nothing else." > REVIEW_SUMMARY.md
-
       - name: add worktree to bolt
         uses: actions/github-script@v7
         env:
@@ -325,18 +316,11 @@ jobs:
 
             const worktree = JSON.parse(process.env.WORKTREE);
             const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL;
-            const reviewSummaryPath = resolve(worktree.worktreePath, 'REVIEW_SUMMARY.md');
-            const reviewSummary = existsSync(reviewSummaryPath)
-              ? readFileSync(reviewSummaryPath, 'utf8')
-              : 'No review summary available.';
 
             await fetch(zapierWebhookUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({
-                ...worktree,
-                reviewSummary
-              })
+              body: JSON.stringify(worktree)
             });
