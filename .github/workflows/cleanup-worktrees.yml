@@ -109,8 +109,14 @@ jobs:
     steps:
       - name: Run after merge hook
         working-directory: ${{ matrix.hook.path }}
+        continue-on-error: true
         run: |
           echo "Cleanup worktree at path: $(pwd)"
           ${{ matrix.hook.cmd }}
+
+      - name: Cleanuo tmux window
+        working-directory: ${{ matrix.hook.path }}
+        continue-on-error: true
+        run: |
           echo "Cleanup tmux windows for worktree: ${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
-          tmux kill-window -t "${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}" 2>/dev/null || true
+          tmux kill-window -t "${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
