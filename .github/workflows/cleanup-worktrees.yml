@@ -75,7 +75,9 @@ jobs:
               url.searchParams.append('filters[0][value]', name);
 
               url.searchParams.append('filters[1][field]', 'state');
-              url.searchParams.append('filters[1][value]', 'MERGED');
+              url.searchParams.append('filters[1][op]', 'in');
+              url.searchParams.append('filters[1][value][]', 'MERGED');
+              url.searchParams.append('filters[1][value][]', 'CLOSED');
 
               url.searchParams.append('filters[2][field]', 'updated_at');
               url.searchParams.append('filters[2][op]', '>=');
