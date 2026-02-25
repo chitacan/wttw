@@ -265,15 +265,15 @@ jobs:
         run: |
           echo "creating worktree for ${{ matrix.worktree.headRefName }}"
           echo "worktree path: ${{ matrix.worktree.worktreePath }}"
-          echo "worktree name: ${{ matrix.worktree.worktreeName }}"
+          echo "worktree name: ${{ matrix.worktree.name }}"
+          echo "worktree worktree name: ${{ matrix.worktree.worktreeName }}"
           echo "workspace url: ${{ matrix.worktree.workspaceUrl }}"
           echo "workspace hook: ${{ matrix.worktree.afterCreateHook }}"
 
           wttw new ${{ matrix.worktree.worktreeName }} \
             --session agents \
             --base-ref origin/${{ matrix.worktree.headRefName }} \
-            --tmux \
-            --cmd 'happy --yolo'
+            --tmux
 
       - name: run after create worktree hook
         working-directory: ${{ matrix.worktree.worktreePath }}
