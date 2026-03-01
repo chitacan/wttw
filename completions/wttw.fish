@@ -56,6 +56,13 @@ complete -r -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_c
 complete -r -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "tmux pane count" -s p -l pane
 complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "create detached worktree" -s d -l detach
 complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "skip copying code-workspace file" -s W -l no-workspace
+complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "skip running hooks" -s H -l no-hook
+complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "focus created tmux window" -s f -l focus
+
+# hook command
+complete -f -c wttw -n '__fish_wttw_needs_command' -a hook -d "run hooks on an existing worktree"
+complete -f -c wttw -n '__fish_wttw_using_command hook; or __fish_wttw_using_command h' -a '(__fish_wttw_worktrees)'
+complete -r -f -c wttw -n '__fish_wttw_using_command hook; or __fish_wttw_using_command h' -d "run only the hook at this index" -s i -l index
 
 # clean command
 complete -f -c wttw -n '__fish_wttw_using_command clean; or __fish_wttw_using_command c' -a '(__fish_wttw_worktrees)'
@@ -68,6 +75,7 @@ complete -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_com
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux pane count" -s p -l pane
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "tmux session name" -s s -l session
 complete -r -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "command to run in panes" -s c -l cmd
+complete -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_command t' -d "focus created tmux window" -s f -l focus
 
 # template command
 complete -f -c wttw -n '__fish_wttw_using_command template; or __fish_wttw_using_command tp' -a '(__fish_wttw_templates)'
