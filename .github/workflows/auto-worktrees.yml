@@ -271,7 +271,7 @@ jobs:
           echo "workspace hook: ${{ matrix.worktree.afterCreateHook }}"
 
           wttw new ${{ matrix.worktree.worktreeName }} \
-            --session agents \
+            --session worktrees \
             --base-ref origin/${{ matrix.worktree.headRefName }} \
             --tmux
 

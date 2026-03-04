@@ -116,9 +116,9 @@ jobs:
           echo "Cleanup worktree at path: $(pwd)"
           ${{ matrix.hook.cmd }}
 
-      - name: Cleanuo tmux window
+      - name: Cleanup tmux window
         working-directory: ${{ matrix.hook.path }}
         continue-on-error: true
         run: |
           echo "Cleanup tmux windows for worktree: ${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
-          tmux kill-window -t "${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
+          tmux kill-window -t "worktrees:${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
