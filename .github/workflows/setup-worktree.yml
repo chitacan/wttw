@@ -7,7 +7,7 @@ on:
         description: 'GitHub URL'
         required: true
       initial_prompt:
-        description: 'Initial prompt for happy'
+        description: 'Initial prompt for claude'
         default: ''
       create_config:
         description: 'Branch name to checkout'
@@ -90,9 +90,7 @@ jobs:
           tmux new-window -t agents \
             -n "${{ steps.check_repo.outputs.window_name }}" \
             -c ${{ steps.check_repo.outputs.main_path }} \
-            happy --yolo ${{ github.event.inputs.initial_prompt }}
-          
-          happy notify -p "${{ steps.check_repo.outputs.window_name }} is ready"
+            claude --dangerously-skip-permissions ${{ github.event.inputs.initial_prompt }}
 
       # For worktrees
       - name: Create worktree if needed
@@ -110,6 +108,4 @@ jobs:
           tmux new-window -t agents \
             -n "${{ steps.check_repo.outputs.window_name }}" \
             -c ${{ steps.check_repo.outputs.worktree_path }} \
-            happy --yolo ${{ github.event.inputs.initial_prompt }}
-
-          happy notify -p "${{ steps.check_repo.outputs.window_name }} is ready"
+            claude --dangerously-skip-permissions ${{ github.event.inputs.initial_prompt }}
