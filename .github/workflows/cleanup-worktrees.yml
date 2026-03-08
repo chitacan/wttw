@@ -120,5 +120,5 @@ jobs:
         working-directory: ${{ matrix.hook.path }}
         continue-on-error: true
         run: |
-          echo "Cleanup tmux windows for worktree: ${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
-          tmux kill-window -t "worktrees:${{ matrix.hook.name }}#${{ matrix.hook.worktreeName }}"
+          echo "Cleanup tmux windows for worktree: ${{ matrix.hook.name }}/${{ matrix.hook.worktreeName }}"
+          tmux kill-window -t "worktrees:${{ matrix.hook.name }}/${{ matrix.hook.worktreeName }}"

@@ -68,12 +68,12 @@ jobs:
               const worktree_path = join(gitPath, repo, worktreeName);
 
               core.setOutput('worktree_name', worktreeName);
-              core.setOutput('window_name', `${repo}#${worktreeName}`);
+              core.setOutput('window_name', `${repo}/${worktreeName}`);
               core.setOutput('worktree_path', worktree_path);
               core.setOutput('worktree_exists', existsSync(worktree_path) ? 'true' : 'false');
             } else {
               core.setOutput('worktree_name', mainBranch);
-              core.setOutput('window_name', `${repo}#${mainBranch}`);
+              core.setOutput('window_name', `${repo}/${mainBranch}`);
               core.setOutput('worktree_path', mainPath);
             }
 
