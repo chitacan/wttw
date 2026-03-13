@@ -58,6 +58,7 @@ complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_comm
 complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "skip copying code-workspace file" -s W -l no-workspace
 complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "skip running hooks" -s H -l no-hook
 complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "focus created tmux window" -s f -l focus
+complete -f -c wttw -n '__fish_wttw_using_command new; or __fish_wttw_using_command n' -d "skip moving changes to new worktree" -s S -l no-stash
 
 # hook command
 complete -f -c wttw -n '__fish_wttw_needs_command' -a hook -d "run hooks on an existing worktree"
