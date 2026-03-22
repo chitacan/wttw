@@ -90,7 +90,7 @@ jobs:
           tmux new-window -t worktrees \
             -n "${{ steps.check_repo.outputs.window_name }}" \
             -c ${{ steps.check_repo.outputs.main_path }} \
-            happy --yolo ${{ github.event.inputs.initial_prompt }}
+            claude remote-control --name "${{ steps.check_repo.outputs.window_name }}" --spawn same-dir ${{ github.event.inputs.initial_prompt }}
 
       # For worktrees
       - name: Create worktree if needed
@@ -108,4 +108,4 @@ jobs:
           tmux new-window -t worktrees \
             -n "${{ steps.check_repo.outputs.window_name }}" \
             -c ${{ steps.check_repo.outputs.worktree_path }} \
-            happy --yolo ${{ github.event.inputs.initial_prompt }}
+            claude remote-control --name "${{ steps.check_repo.outputs.window_name }}" --spawn same-dir ${{ github.event.inputs.initial_prompt }}
