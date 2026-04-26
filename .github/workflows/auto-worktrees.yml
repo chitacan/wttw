@@ -273,8 +273,7 @@ jobs:
           wttw new ${{ matrix.worktree.worktreeName }} \
             --session worktrees \
             --base-ref origin/${{ matrix.worktree.headRefName }} \
-            --no-hook \
-            --tmux
+            --no-hook
 
       - name: run after create worktree hook
         working-directory: ${{ matrix.worktree.worktreePath }}
