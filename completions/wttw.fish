@@ -80,6 +80,7 @@ complete -f -c wttw -n '__fish_wttw_using_command tmux; or __fish_wttw_using_com
 
 # template command
 complete -f -c wttw -n '__fish_wttw_using_command template; or __fish_wttw_using_command tp' -a '(__fish_wttw_templates)'
+complete -f -c wttw -n '__fish_wttw_using_command template; or __fish_wttw_using_command tp' -d "list templates" -s l -l list
 
 # open command
 complete -f -c wttw -n '__fish_wttw_using_command open; or __fish_wttw_using_command o' -a '(__fish_wttw_worktrees)'
